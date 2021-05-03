@@ -1,2 +1,2 @@
 # SpectrumGUI
-measure the température 
+measure the temperature 
