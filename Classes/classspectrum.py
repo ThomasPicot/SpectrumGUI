@@ -27,26 +27,26 @@ class SpectrumRubidiumD2Line:
         # Rb 87
 
         # F_g = 2 --> F_e = 1, 2, 3
-        self.w_i = -2735.05e6
-        self.w_ii = -2578.11e6
-        self.w_iii = -2311.26e6
+        self.w_i = -2735.05e6 + 1307.87e6
+        self.w_ii = -2578.11e6 + 1307.87e6
+        self.w_iii = -2311.26e6 + 1307.87e6
 
         # F_g = 1 --> F_e = 0, 1, 2
-        self.w_ib = 4027.403e6
-        self.w_iib = 4099.625e6
-        self.w_iiib = 4256.57e6
+        self.w_ib = 4027.403e6 + 1307.87e6
+        self.w_iib = 4099.625e6 + 1307.87e6
+        self.w_iiib = 4256.57e6 + 1307.87e6
 
         # Rb 85
 
         # F_g = 3 --> F_e = 2, 3, 4
-        self.w_j = -1371.29e6
-        self.w_jj = -1307.87e6
-        self.w_jjj = -1186.91e6
+        self.w_j = -1371.29e6 + 1307.87e6
+        self.w_jj = -1307.87e6 + 1307.87e6
+        self.w_jjj = -1186.91e6 + 1307.87e6
 
         # F_g = 2 --> F_e = 1, 2, 3
-        self.w_jb = 1635.454e6
-        self.w_jjb = 1664.714e6
-        self.w_jjjb = 1728.134e6
+        self.w_jb = 1635.454e6 + 1307.87e6
+        self.w_jjb = 1664.714e6 + 1307.87e6
+        self.w_jjjb = 1728.134e6 + 1307.87e6
 
     @staticmethod
     def voigtProfile(z: float) -> float:
@@ -76,7 +76,7 @@ class SpectrumRubidiumD2Line:
         :param temp: temperature T[K] (local var)
         :return: sigma
         """
-        sigma: float = 2 * np.pi * np.sqrt((2 * cst.k * temp) / (1.4099931997e-25 * 7.807864080702083e-7 ** 2))
+        sigma: float = (2 * np.pi/ 7.807864080702083e-7) * np.sqrt((2 * cst.k * temp) / 1.4099931997e-25)
         return sigma
 
     def detuning(self) -> np.array([float]):
@@ -84,7 +84,7 @@ class SpectrumRubidiumD2Line:
         variable
         :return: detuning array
         """
-        detuning: array = np.linspace(-7e9, 7e9, 2000)  # useless to touch it
+        detuning: array = np.linspace(-7e9, 7e9, 10000)  # useless to touch it
         return detuning
 
     def atomNumber(self, frac: int, temp: int, deg: int) -> float:
@@ -102,7 +102,7 @@ class SpectrumRubidiumD2Line:
         """
 
         :param C_f: C-f^2 transition coefficient, depending on the quantum number F and isotope
-        :param frac: % of Rb 87 in the cell. 0 < frac < 100 -> 0 < frac < 1
+        :param frac: % of Rb 87 in the cell. frac in [0-100]
         :param temp: temperature T[K] (local var)
         :param transition_frequency: possible values are instance variables in init that depend of the quantum number F.
         :param deg: degeneration degree, depending of the isotope. 8 for 87 and 12 for 85
@@ -110,7 +110,7 @@ class SpectrumRubidiumD2Line:
         """
         N: float = self.atomNumber(frac, temp, deg)
         delta: np.array([int]) = 2 * np.pi * (self.detuning() - transition_frequency)
-        voigt_arg = (0.5*(self.gamma+self.beta*self.Ndensity(temp=temp, deg=deg)) - 1j * delta) / self.sigma(temp)
+        voigt_arg = (0.5*(self.gamma+2*np.pi*self.beta*self.Ndensity(temp=temp, deg=deg)) - 1j * delta) / self.sigma(temp)
         suscepti = C_f * (N * (self.d ** 2) * np.sqrt(np.pi) / (self.h * self.eps_zero * self.sigma(temp))) * \
                    self.voigtProfile(voigt_arg).imag
         return suscepti
